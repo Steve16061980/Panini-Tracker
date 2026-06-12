@@ -1,23 +1,18 @@
-Panini Tracker V2
+Panini Tracker V3
 
-Neu:
-- Foto hochladen startet automatisch OCR.
-- Codes wie CIV 6, CIV20, RSA 09 werden gesucht.
-- Gefundene Codes werden zur Bestätigung angezeigt.
-- Danach hinzufügen oder herausnehmen.
-- Manuelle Eingabe bleibt möglich.
-- CSV/Excel-Export bleibt möglich.
+Neu in V3:
+- Panini-spezifischere Erkennung.
+- Scannt mehrere Ausschnitte oben/rechts statt nur das ganze Foto.
+- Besser für mehrere Karten nebeneinander.
+- Gefundene Ausschnitte werden angezeigt.
+- Weiterhin manuelle Korrektur möglich.
 
-Upload zu GitHub:
-Die bestehenden Dateien im Repository ersetzen:
-- index.html
-- manifest.json
-- sw.js
-- README.txt
+GitHub:
+1. index.html, manifest.json, sw.js, README.txt im Repository ersetzen.
+2. Seite mit ?v=3 öffnen, z. B.
+   https://steve16061980.github.io/Panini-Tracker/?v=3
 
-Wichtig:
-Nach dem Upload auf dem iPhone die Seite neu laden.
-Falls die alte Version kommt:
-- Safari Tab schließen
-- neu öffnen
-- ggf. Website-Daten für github.io löschen
+Tipp:
+- Karten möglichst gerade fotografieren.
+- Weißer/ruhiger Hintergrund.
+- Code oben rechts nicht zu klein.
