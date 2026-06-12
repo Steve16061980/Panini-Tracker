@@ -1,166 +1,54 @@
-<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Panini Tracker V3</title>
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><title>Panini Tracker V4</title>
 <link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f4f4f4;color:#111}
-header{background:#8b0024;color:white;padding:18px 16px}
-main{padding:12px;max-width:980px;margin:auto}
+header{background:#8b0024;color:white;padding:18px 16px}main{padding:12px;max-width:960px;margin:auto}
 section{background:white;border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 1px 6px #0001}
-textarea,input,select,button{font:inherit;border-radius:12px;border:1px solid #ccc;padding:12px;box-sizing:border-box}
-textarea{width:100%;min-height:92px}
-button{background:#111;color:white;border:0;margin:4px 2px}
-button.gray{background:#666} button.green{background:#087a35} button.red{background:#a01818}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.stat{background:#f1f1f1;border-radius:14px;padding:12px} .stat b{font-size:28px;display:block}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-table{width:100%;border-collapse:collapse;font-size:14px} td,th{border-bottom:1px solid #eee;padding:8px;text-align:left}
-.preview{max-width:100%;border-radius:14px;margin-top:10px;display:none}
-.small{color:#666;font-size:14px} .pill{display:inline-block;background:#eee;border-radius:999px;padding:8px 10px;margin:4px;font-weight:600}
-.good{background:#dff5e7} .warn{background:#fff2c2} .bad{background:#ffd9d9}
+input,textarea,select,button{font:inherit;border-radius:12px;border:1px solid #ccc;padding:12px;box-sizing:border-box}
+textarea{width:100%;min-height:84px}button{background:#111;color:white;border:0;margin:4px 2px}button.green{background:#087a35}button.gray{background:#666}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.stat{background:#f1f1f1;border-radius:14px;padding:12px}.stat b{font-size:28px;display:block}
+.preview{max-width:100%;border-radius:14px;margin-top:10px;display:none}.small{color:#666;font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-block;background:#eee;border-radius:999px;padding:8px 10px;margin:4px;font-weight:600}.good{background:#dff5e7}.warn{background:#fff2c2}.bad{background:#ffd9d9}
+.crop{display:inline-block;margin:5px;border:1px solid #ddd;border-radius:8px;padding:4px;background:#fafafa}.crop canvas{max-width:170px;display:block}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid #eee;padding:8px;text-align:left}
 #progress{font-weight:700;margin-top:8px}
-.crop{display:inline-block;margin:5px;border:1px solid #ddd;border-radius:8px;padding:4px;background:#fafafa}
-.crop canvas{max-width:130px;display:block}
-</style>
-</head>
-<body>
-<header><h1>Panini Tracker V3</h1><div>Karten-Code-Erkennung oben rechts</div></header>
-<main>
+</style></head><body>
+<header><h1>Panini Tracker V4</h1><div>Schneller Code-Scanner</div></header><main>
 <section><div id="stats" class="grid"></div></section>
-
-<section>
-<h2>1. Foto erkennen</h2>
-<p class="small">Am besten Karten gerade nebeneinander fotografieren. V3 scannt zusätzlich mehrere obere Bildbereiche, damit Codes oben rechts wie <b>CIV 20</b> besser gefunden werden.</p>
-<input id="photo" type="file" accept="image/*" capture="environment">
-<img id="preview" class="preview">
-<canvas id="work" style="display:none"></canvas>
-<div id="progress"></div>
-<h3>Gefundene Code-Ausschnitte</h3>
-<div id="crops"></div>
-<h3>Erkannter Text</h3>
-<textarea id="ocrText" placeholder="OCR-Text erscheint hier. Du kannst ergänzen/korrigieren, z. B. TUN 4 CIV 20 CIV 6."></textarea>
-<button id="detectFromText">Codes aus Text finden</button>
-<div id="detected"></div>
-<button id="confirmAdd" class="green">Gefundene hinzufügen</button>
-<button id="confirmRemove" class="gray">Gefundene herausnehmen</button>
+<section><h2>1. Foto erkennen</h2>
+<p class="small">V4 sucht dunkle Code-Labels oben auf den Karten und scannt nur diese. Das ist deutlich schneller als V3.</p>
+<input id="photo" type="file" accept="image/*" capture="environment"><img id="preview" class="preview">
+<div id="progress"></div><h3>Code-Ausschnitte</h3><div id="crops"></div>
+<h3>Erkannter Text</h3><textarea id="ocrText" placeholder="Du kannst ergänzen: TUN 4 CIV 20 CIV 6"></textarea>
+<button id="detectFromText">Codes aus Text finden</button><div id="detected"></div>
+<button id="confirmAdd" class="green">Gefundene hinzufügen</button><button id="confirmRemove" class="gray">Gefundene herausnehmen</button>
 </section>
-
-<section>
-<h2>2. Manuell</h2>
-<input id="defaultTeam" placeholder="Team-Fallback, z. B. RSA">
-<textarea id="manual" placeholder="RSA09 RSA10 oder 9 10 14"></textarea>
-<button id="add">Hinzufügen</button>
-<button id="remove" class="gray">Herausnehmen</button>
-</section>
-
-<section>
-<h2>3. Listen</h2>
-<div class="row">
-<input id="teamFilter" placeholder="Team-Code, z. B. RSA">
-<select id="viewFilter"><option value="all">Alle</option><option value="missing">Fehlende</option><option value="owned">Vorhandene</option><option value="doubles">Doppelte</option></select>
-<button id="csv">CSV/Excel Export</button>
-<button id="reset" class="gray">Reset</button>
-</div>
-<table id="table"></table>
-</section>
+<section><h2>2. Manuell</h2><input id="defaultTeam" placeholder="Team-Fallback, z. B. CIV"><textarea id="manual" placeholder="CIV06 CIV20 oder 6 20"></textarea>
+<button id="add">Hinzufügen</button><button id="remove" class="gray">Herausnehmen</button></section>
+<section><h2>3. Listen</h2><div class="row"><input id="teamFilter" placeholder="Team-Code, z. B. RSA"><select id="viewFilter"><option value="all">Alle</option><option value="missing">Fehlende</option><option value="owned">Vorhandene</option><option value="doubles">Doppelte</option></select><button id="csv">CSV/Excel Export</button><button id="reset" class="gray">Reset</button></div><table id="table"></table></section>
 </main>
-
 <script>
-const INITIAL_MISSING = {"MEX": [2, 5, 8, 12, 15, 16, 18, 20], "RSA": [9, 10, 14], "KOR": [8, 10, 13, 18, 20], "CZE": [1, 2, 3, 5, 9, 11, 12, 13, 19, 20], "CAN": [2, 3, 5, 8, 9, 11, 15, 16], "BIH": [2, 4, 6, 12, 13, 16, 18, 20], "QAT": [4, 6, 9, 10, 13, 17, 19], "SUI": [4, 7, 15, 19], "BRA": [3, 6, 7, 10, 18, 20], "MAR": [3, 4, 9, 13, 19], "HAI": [1, 8, 10, 11, 12, 16, 18], "SCO": [5, 7, 9, 14, 18], "USA": [2, 3, 10, 11, 14, 17, 20], "PAR": [5, 6, 7, 8, 12, 13, 16, 18], "AUS": [2, 4, 9, 11, 13, 15, 16, 19, 20], "TUR": [1, 2, 18, 20], "GER": [2, 5, 11, 14, 17, 19, 20], "CUW": [1, 5, 6, 7, 8, 9, 15, 16, 17, 19], "CIV": [2, 3, 4, 6, 8, 12, 17, 20], "ECU": [1, 5, 7, 9, 10, 15, 17, 18, 20], "NED": [1, 3, 5, 9, 15, 17, 18], "JPN": [5, 9, 16, 18, 19], "SWE": [2, 4, 9, 10, 11, 12, 16, 19], "TUN": [4, 7, 10, 15, 19], "BEL": [3, 6, 10, 11, 14, 17, 19], "EGY": [1, 3, 5, 6, 9, 10, 11, 18], "IRN": [2, 3, 5, 6, 7, 10, 16, 20], "NZL": [2, 4, 6, 7, 8, 10, 11, 18, 20], "ESP": [1, 3, 5, 7, 8, 12, 16, 20], "CPV": [3, 5, 13, 16, 19, 20], "KSA": [3, 4, 7, 10, 11, 12, 13, 15, 17], "URU": [2, 4, 6, 8, 9, 11, 12, 13, 14, 15, 17, 18, 19, 20], "FRA": [3, 5, 6, 8, 11, 14, 19], "SEN": [1, 4, 7, 14, 17, 18, 20], "IRQ": [2, 13, 14, 16, 17, 20], "NOR": [1, 2, 3, 4, 13], "ARG": [2, 5, 6, 10, 12, 13, 14, 16], "ALG": [1, 4, 7, 17], "AUT": [1, 4, 12, 13, 18], "JOR": [3, 7, 12, 13, 15, 17, 20], "POR": [1, 5, 8, 16], "COD": [3, 6, 9, 10, 14, 20], "UZB": [3, 7, 8, 9, 13, 16, 19], "COL": [1, 8, 9, 12, 16, 17, 18, 20], "ENG": [2, 5, 6, 7, 8, 9, 12, 18, 20], "CRO": [1, 5, 7, 9, 10, 16, 19], "GHA": [2, 4, 5, 8, 14, 16, 17, 18], "PAN": [1, 3, 4, 8, 10, 16, 19], "FWC": [1, 2, 4, 9, 11, 15, 18]};
-const KNOWN_TEAMS = Object.keys(INITIAL_MISSING);
-const KEY="panini_tracker_v3";
-let detectedEvents=[];
-
-function init(){const cards={};for(const [t,nums] of Object.entries(INITIAL_MISSING)){for(const n of nums){const id=t+String(n).padStart(2,"0");cards[id]={team:t,number:n,count:0,wanted:true}}}return {cards,log:[]}}
-let state=JSON.parse(localStorage.getItem(KEY)||"null")||init();
-function save(){localStorage.setItem(KEY,JSON.stringify(state));render()}
-function normToken(tok,team){tok=(tok||"").trim().toUpperCase().replace(/[^A-Z0-9]/g,"");let m=tok.match(/^([A-Z]{2,3})(\d{1,2})$/);if(m&&KNOWN_TEAMS.includes(m[1]))return m[1]+String(parseInt(m[2])).padStart(2,"0");m=tok.match(/^(\d{1,2})$/);if(m&&team)return team.toUpperCase()+String(parseInt(m[1])).padStart(2,"0");return null}
-function cleanText(t){return (t||"").toUpperCase().replace(/[|]/g,"I").replace(/C[1I]V/g,"CIV").replace(/0IV/g,"CIV").replace(/T0N/g,"TUN").replace(/\s+/g," ")}
-function extractCodes(text){text=cleanText(text);const found=[];for(const team of KNOWN_TEAMS){const re=new RegExp("\\b"+team+"\\s*[-:]?\\s*(\\d{1,2})\\b","g");let m;while((m=re.exec(text))!==null){const n=parseInt(m[1]);if(n>=1&&n<=99)found.push(team+String(n).padStart(2,"0"));}}return found.map(id=>({id,delta:1}))}
-function parseManual(txt,mode){const team=document.getElementById("defaultTeam").value.trim().toUpperCase();return txt.split(/[\s,;]+/).filter(Boolean).map(x=>{let d=mode;if(x[0]=="+"||x[0]=="-"){d=x[0];x=x.slice(1)}const id=normToken(x,team);return id?{id,delta:d=="-"?-1:1}:null}).filter(Boolean)}
-function summarizeDetected(events){detectedEvents=events;const box=document.getElementById("detected");if(!events.length){box.innerHTML="<p class='small'>Keine Codes gefunden. Bitte Text ergänzen, z. B. TUN 4 CIV 20 CIV 6.</p>";return}const counts={};for(const e of events)counts[e.id]=(counts[e.id]||0)+1;box.innerHTML=Object.entries(counts).map(([id,c])=>{const card=state.cards[id];let cls="warn",label="nicht in Startliste";if(card&&card.count===0){cls="good";label="fehlt noch"}else if(card&&card.count===1){cls="warn";label="schon vorhanden"}else if(card&&card.count>1){cls="bad";label="bereits doppelt"}return `<span class="pill ${cls}">${id} ×${c} · ${label}</span>`}).join("")}
+const INITIAL_MISSING={"MEX": [2, 5, 8, 12, 15, 16, 18, 20], "RSA": [9, 10, 14], "KOR": [8, 10, 13, 18, 20], "CZE": [1, 2, 3, 5, 9, 11, 12, 13, 19, 20], "CAN": [2, 3, 5, 8, 9, 11, 15, 16], "BIH": [2, 4, 6, 12, 13, 16, 18, 20], "QAT": [4, 6, 9, 10, 13, 17, 19], "SUI": [4, 7, 15, 19], "BRA": [3, 6, 7, 10, 18, 20], "MAR": [3, 4, 9, 13, 19], "HAI": [1, 8, 10, 11, 12, 16, 18], "SCO": [5, 7, 9, 14, 18], "USA": [2, 3, 10, 11, 14, 17, 20], "PAR": [5, 6, 7, 8, 12, 13, 16, 18], "AUS": [2, 4, 9, 11, 13, 15, 16, 19, 20], "TUR": [1, 2, 18, 20], "GER": [2, 5, 11, 14, 17, 19, 20], "CUW": [1, 5, 6, 7, 8, 9, 15, 16, 17, 19], "CIV": [2, 3, 4, 6, 8, 12, 17, 20], "ECU": [1, 5, 7, 9, 10, 15, 17, 18, 20], "NED": [1, 3, 5, 9, 15, 17, 18], "JPN": [5, 9, 16, 18, 19], "SWE": [2, 4, 9, 10, 11, 12, 16, 19], "TUN": [4, 7, 10, 15, 19], "BEL": [3, 6, 10, 11, 14, 17, 19], "EGY": [1, 3, 5, 6, 9, 10, 11, 18], "IRN": [2, 3, 5, 6, 7, 10, 16, 20], "NZL": [2, 4, 6, 7, 8, 10, 11, 18, 20], "ESP": [1, 3, 5, 7, 8, 12, 16, 20], "CPV": [3, 5, 13, 16, 19, 20], "KSA": [3, 4, 7, 10, 11, 12, 13, 15, 17], "URU": [2, 4, 6, 8, 9, 11, 12, 13, 14, 15, 17, 18, 19, 20], "FRA": [3, 5, 6, 8, 11, 14, 19], "SEN": [1, 4, 7, 14, 17, 18, 20], "IRQ": [2, 13, 14, 16, 17, 20], "NOR": [1, 2, 3, 4, 13], "ARG": [2, 5, 6, 10, 12, 13, 14, 16], "ALG": [1, 4, 7, 17], "AUT": [1, 4, 12, 13, 18], "JOR": [3, 7, 12, 13, 15, 17, 20], "POR": [1, 5, 8, 16], "COD": [3, 6, 9, 10, 14, 20], "UZB": [3, 7, 8, 9, 13, 16, 19], "COL": [1, 8, 9, 12, 16, 17, 18, 20], "ENG": [2, 5, 6, 7, 8, 9, 12, 18, 20], "CRO": [1, 5, 7, 9, 10, 16, 19], "GHA": [2, 4, 5, 8, 14, 16, 17, 18], "PAN": [1, 3, 4, 8, 10, 16, 19], "FWC": [1, 2, 4, 9, 11, 15, 18]}, KNOWN_TEAMS=Object.keys(INITIAL_MISSING), KEY="panini_tracker_v4";let detectedEvents=[];
+function init(){const cards={};for(const [t,nums] of Object.entries(INITIAL_MISSING))for(const n of nums)cards[t+String(n).padStart(2,"0")]={team:t,number:n,count:0,wanted:true};return {cards,log:[]}}
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||init();function save(){localStorage.setItem(KEY,JSON.stringify(state));render()}
+function clean(t){return (t||"").toUpperCase().replace(/C[1I]V/g,"CIV").replace(/0IV/g,"CIV").replace(/T0N/g,"TUN").replace(/\s+/g," ")}
+function extractCodes(text){text=clean(text);const found=[];for(const team of KNOWN_TEAMS){const re=new RegExp("\\b"+team+"\\s*[-:]?\\s*(\\d{1,2})\\b","g");let m;while((m=re.exec(text))!==null)found.push(team+String(parseInt(m[1])).padStart(2,"0"))}return found.map(id=>({id,delta:1}))}
+function norm(x,team){x=(x||"").trim().toUpperCase().replace(/[^A-Z0-9]/g,"");let m=x.match(/^([A-Z]{2,3})(\d{1,2})$/);if(m&&KNOWN_TEAMS.includes(m[1]))return m[1]+String(parseInt(m[2])).padStart(2,"0");m=x.match(/^(\d{1,2})$/);if(m&&team)return team+String(parseInt(m[1])).padStart(2,"0");return null}
+function parseManual(txt,mode){const team=document.getElementById("defaultTeam").value.trim().toUpperCase();return txt.split(/[\s,;]+/).filter(Boolean).map(x=>{let d=mode;if(x[0]=="+"||x[0]=="-"){d=x[0];x=x.slice(1)}const id=norm(x,team);return id?{id,delta:d=="-"?-1:1}:null}).filter(Boolean)}
+function summarize(events){detectedEvents=events;const counts={};events.forEach(e=>counts[e.id]=(counts[e.id]||0)+1);const box=document.getElementById("detected");if(!events.length){box.innerHTML="<p class='small'>Keine Codes gefunden. Bitte Text ergänzen.</p>";return}box.innerHTML=Object.entries(counts).map(([id,c])=>{const card=state.cards[id];let cls="warn",lab="nicht in Startliste";if(card&&card.count==0){cls="good";lab="fehlt noch"}else if(card&&card.count==1){lab="schon vorhanden"}else if(card&&card.count>1){cls="bad";lab="bereits doppelt"}return `<span class="pill ${cls}">${id} ×${c} · ${lab}</span>`}).join("")}
 function apply(events,source="manual"){for(const e of events){if(!state.cards[e.id]){const tm=e.id.match(/[A-Z]+/)[0],nr=parseInt(e.id.match(/\d+/)[0]);state.cards[e.id]={team:tm,number:nr,count:0,wanted:false}}state.cards[e.id].count=Math.max(0,state.cards[e.id].count+e.delta);state.log.push({ts:new Date().toISOString(),id:e.id,delta:e.delta,source})}save()}
 function rows(){return Object.entries(state.cards).map(([id,c])=>({id,...c,status:c.count==0?"Fehlt":c.count==1?"Vorhanden":"Doppelt"})).sort((a,b)=>a.team.localeCompare(b.team)||a.number-b.number)}
 function render(){let r=rows(),miss=r.filter(x=>x.count==0),own=r.filter(x=>x.count>0),doub=r.filter(x=>x.count>1);document.getElementById("stats").innerHTML=`<div class=stat><b>${r.length}</b>Karten</div><div class=stat><b>${miss.length}</b>fehlen</div><div class=stat><b>${own.length}</b>vorhanden</div><div class=stat><b>${doub.length}</b>doppelt</div>`;const t=document.getElementById("teamFilter").value.toUpperCase().trim(),v=document.getElementById("viewFilter").value;if(t)r=r.filter(x=>x.team==t);if(v=="missing")r=r.filter(x=>x.count==0);if(v=="owned")r=r.filter(x=>x.count>0);if(v=="doubles")r=r.filter(x=>x.count>1);document.getElementById("table").innerHTML="<tr><th>ID</th><th>Bestand</th><th>Status</th><th></th></tr>"+r.map(x=>`<tr><td>${x.id}</td><td>${x.count}</td><td>${x.status}</td><td><button onclick="apply([{id:'${x.id}',delta:1}])">+</button><button class=gray onclick="apply([{id:'${x.id}',delta:-1}])">−</button></td></tr>`).join("")}
-
-function makeCrops(img){
-  const crops=[];
-  const W=img.naturalWidth, H=img.naturalHeight;
-  // full top band
-  crops.push({x:0,y:0,w:W,h:Math.round(H*0.32),name:"oberes Drittel"});
-  // columns: for photos with multiple cards next to each other
-  for(let cols of [2,3,4]){
-    for(let i=0;i<cols;i++){
-      const x=Math.round(W*i/cols), cw=Math.round(W/cols);
-      crops.push({x:x+Math.round(cw*0.42),y:0,w:Math.round(cw*0.58),h:Math.round(H*0.28),name:`Spalte ${i+1}/${cols} oben rechts`});
-    }
-  }
-  // scan rows slightly lower, useful when cards start below top of photo
-  for(let cols of [3]){
-    for(let i=0;i<cols;i++){
-      const x=Math.round(W*i/cols), cw=Math.round(W/cols);
-      crops.push({x:x+Math.round(cw*0.38),y:Math.round(H*0.08),w:Math.round(cw*0.62),h:Math.round(H*0.24),name:`Spalte ${i+1} tiefer`});
-    }
-  }
-  return crops;
-}
-function cropToCanvas(img, crop, scale=2){
-  const c=document.createElement("canvas"), ctx=c.getContext("2d");
-  c.width=Math.max(1,Math.round(crop.w*scale)); c.height=Math.max(1,Math.round(crop.h*scale));
-  ctx.drawImage(img,crop.x,crop.y,crop.w,crop.h,0,0,c.width,c.height);
-  // contrast-ish grayscale threshold
-  const data=ctx.getImageData(0,0,c.width,c.height);
-  for(let i=0;i<data.data.length;i+=4){
-    const r=data.data[i],g=data.data[i+1],b=data.data[i+2];
-    let v=0.299*r+0.587*g+0.114*b;
-    v = v < 150 ? 0 : 255;
-    data.data[i]=data.data[i+1]=data.data[i+2]=v;
-  }
-  ctx.putImageData(data,0,0);
-  return c;
-}
-async function recognize(file){
- const progress=document.getElementById("progress"); const cropsDiv=document.getElementById("crops"); cropsDiv.innerHTML="";
- progress.textContent="Bild wird vorbereitet…";
- const img=document.getElementById("preview");
- await new Promise(resolve=>{ if(img.complete) resolve(); else img.onload=resolve; });
- let worker;
- try{
-  worker=await Tesseract.createWorker("eng",1,{logger:m=>{if(m.status)progress.textContent=m.status+(m.progress?" "+Math.round(m.progress*100)+"%":"")}});
-  await worker.setParameters({tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 :-", tessedit_pageseg_mode:"6"});
-  let allText="";
-  const crops=makeCrops(img);
-  let ix=0;
-  for(const crop of crops){
-    ix++; progress.textContent=`OCR Ausschnitt ${ix}/${crops.length}`;
-    const c=cropToCanvas(img,crop,2.2);
-    const wrap=document.createElement("div");wrap.className="crop";wrap.title=crop.name;wrap.appendChild(c.cloneNode());
-    cropsDiv.appendChild(wrap);
-    const res=await worker.recognize(c);
-    allText += "\n" + (res.data.text||"");
-  }
-  await worker.terminate();
-  document.getElementById("ocrText").value=allText.trim();
-  progress.textContent="OCR fertig. Bitte Codes prüfen.";
-  summarizeDetected(extractCodes(allText));
- }catch(err){progress.textContent="OCR Fehler. Bitte Codes manuell ergänzen."; if(worker) try{await worker.terminate()}catch(e){}; console.error(err)}
-}
-
-document.getElementById("photo").onchange=e=>{const f=e.target.files[0];if(f){const img=document.getElementById("preview");img.src=URL.createObjectURL(f);img.style.display="block";img.onload=()=>recognize(f)}};
-document.getElementById("detectFromText").onclick=()=>summarizeDetected(extractCodes(document.getElementById("ocrText").value));
-document.getElementById("confirmAdd").onclick=()=>apply(detectedEvents.map(e=>({...e,delta:1})),"photo+");
-document.getElementById("confirmRemove").onclick=()=>apply(detectedEvents.map(e=>({...e,delta:-1})),"photo-");
-document.getElementById("add").onclick=()=>{apply(parseManual(document.getElementById("manual").value,"+"),"manual+");document.getElementById("manual").value=""};
-document.getElementById("remove").onclick=()=>{apply(parseManual(document.getElementById("manual").value,"-"),"manual-");document.getElementById("manual").value=""};
-document.getElementById("teamFilter").oninput=render;document.getElementById("viewFilter").onchange=render;
-document.getElementById("reset").onclick=()=>{if(confirm("Zurücksetzen?")){state=init();save()}};
-document.getElementById("csv").onclick=()=>{const csv=["ID,Team,Nummer,Bestand,Status",...rows().map(x=>`${x.id},${x.team},${x.number},${x.count},${x.status}`)].join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="panini_bestand.csv";a.click()};
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
-render();
-</script>
-</body></html>
+function detectLabelCrops(img){const W=img.naturalWidth,H=img.naturalHeight,scale=900/W,c=document.createElement("canvas"),ctx=c.getContext("2d");c.width=900;c.height=Math.round(H*scale);ctx.drawImage(img,0,0,c.width,c.height);const im=ctx.getImageData(0,0,c.width,c.height),d=im.data,vis=new Uint8Array(c.width*c.height),boxes=[];function dark(x,y){const i=(y*c.width+x)*4,r=d[i],g=d[i+1],b=d[i+2];return r<95&&g<95&&b<95}for(let y=0;y<c.height*0.55;y++)for(let x=0;x<c.width;x++)if(!vis[y*c.width+x]&&dark(x,y)){let q=[[x,y]],minx=x,maxx=x,miny=y,maxy=y,cnt=0;vis[y*c.width+x]=1;for(let qi=0;qi<q.length;qi++){const [px,py]=q[qi];cnt++;if(px<minx)minx=px;if(px>maxx)maxx=px;if(py<miny)miny=py;if(py>maxy)maxy=py;for(const [nx,ny] of [[px+1,py],[px-1,py],[px,py+1],[px,py-1]])if(nx>=0&&ny>=0&&nx<c.width&&ny<c.height&&!vis[ny*c.width+nx]&&dark(nx,ny)){vis[ny*c.width+nx]=1;q.push([nx,ny])}}let bw=maxx-minx+1,bh=maxy-miny+1;if(cnt>80&&bw>25&&bw<160&&bh>12&&bh<70)boxes.push({x:minx/scale,y:miny/scale,w:bw/scale,h:bh/scale})}boxes.sort((a,b)=>a.x-b.x);let out=[];for(const b of boxes){let pad=18;if(!out.some(o=>Math.abs(o.x-b.x)<30&&Math.abs(o.y-b.y)<25))out.push({x:Math.max(0,b.x-pad),y:Math.max(0,b.y-pad),w:b.w+pad*2,h:b.h+pad*2})}return out.slice(0,8)}
+function cropCanvas(img,b){const c=document.createElement("canvas"),ctx=c.getContext("2d"),s=4;c.width=Math.round(b.w*s);c.height=Math.round(b.h*s);ctx.drawImage(img,b.x,b.y,b.w,b.h,0,0,c.width,c.height);return c}
+async function recognize(){const img=document.getElementById("preview"),progress=document.getElementById("progress"),cropsDiv=document.getElementById("crops");cropsDiv.innerHTML="";progress.textContent="Suche Code-Kästchen…";const boxes=detectLabelCrops(img);if(!boxes.length)progress.textContent="Keine Kästchen gefunden, versuche grobe Bereiche…";const use=boxes.length?boxes:[{x:img.naturalWidth*.18,y:img.naturalHeight*.18,w:img.naturalWidth*.18,h:img.naturalHeight*.08},{x:img.naturalWidth*.48,y:img.naturalHeight*.18,w:img.naturalWidth*.18,h:img.naturalHeight*.08},{x:img.naturalWidth*.78,y:img.naturalHeight*.18,w:img.naturalWidth*.18,h:img.naturalHeight*.08}];try{const worker=await Tesseract.createWorker("eng");await worker.setParameters({tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",tessedit_pageseg_mode:"7"});let all="";let i=0;for(const b of use){i++;progress.textContent=`OCR Code ${i}/${use.length}`;const cc=cropCanvas(img,b);const wrap=document.createElement("div");wrap.className="crop";wrap.appendChild(cc.cloneNode());cropsDiv.appendChild(wrap);const res=await worker.recognize(cc);all+="\n"+(res.data.text||"")}await worker.terminate();document.getElementById("ocrText").value=all.trim();progress.textContent="Fertig. Bitte prüfen.";summarize(extractCodes(all))}catch(e){progress.textContent="OCR Fehler. Bitte manuell eintragen.";console.error(e)}}
+document.getElementById("photo").onchange=e=>{const f=e.target.files[0];if(f){const img=document.getElementById("preview");img.src=URL.createObjectURL(f);img.style.display="block";img.onload=recognize}};
+document.getElementById("detectFromText").onclick=()=>summarize(extractCodes(document.getElementById("ocrText").value));
+document.getElementById("confirmAdd").onclick=()=>apply(detectedEvents.map(e=>({...e,delta:1})),"photo+");document.getElementById("confirmRemove").onclick=()=>apply(detectedEvents.map(e=>({...e,delta:-1})),"photo-");
+document.getElementById("add").onclick=()=>{apply(parseManual(document.getElementById("manual").value,"+"),"manual+");document.getElementById("manual").value=""};document.getElementById("remove").onclick=()=>{apply(parseManual(document.getElementById("manual").value,"-"),"manual-");document.getElementById("manual").value=""};
+document.getElementById("teamFilter").oninput=render;document.getElementById("viewFilter").onchange=render;document.getElementById("reset").onclick=()=>{if(confirm("Zurücksetzen?")){state=init();save()}};document.getElementById("csv").onclick=()=>{const csv=["ID,Team,Nummer,Bestand,Status",...rows().map(x=>`${x.id},${x.team},${x.number},${x.count},${x.status}`)].join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="panini_bestand.csv";a.click()};
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});render();
+</script></body></html>
